@@ -1,0 +1,8 @@
+*.d.ts
+*.map
+*.tsbuildinfo
+.DS_Store
+coverage/
+node_modules/
+lib/
+yarn.lock

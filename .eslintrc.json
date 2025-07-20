@@ -1,0 +1,11 @@
+{
+	"extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+	"parser": "@typescript-eslint/parser",
+	"plugins": ["@typescript-eslint", "react", "react-hooks"],
+	"root": true,
+	"rules": {
+		"semi": "off",
+		"react-hooks/exhaustive-deps": "error",
+		"react-hooks/rules-of-hooks": "error"
+	}
+}

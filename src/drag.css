@@ -1,0 +1,14 @@
+/* show the item being dragged */
+.use-form-drag-source-styled {
+	opacity: 50%;
+}
+
+/* show a grey line where the item will be dragged */
+.use-form-drag-target-styled.use-form-drag-before-styled::before,
+.use-form-drag-target-styled.use-form-drag-after-styled::after {
+	content: " ";
+	display: block;
+	background-color: lightgray;
+	height: 10px;
+	border-radius: 5px;
+}
