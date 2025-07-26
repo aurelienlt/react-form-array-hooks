@@ -68,53 +68,53 @@ const array = useFormArray<Type, Meta={}>(values, setValues [, options])
 
 ```tsx
 function DataForm() {
-	type Data = { name: string; value: string }
-	const [data, setData] = useState<Data[]>([])
+  type Data = { name: string; value: string }
+  const [data, setData] = useState<Data[]>([])
 
-	const array = useFormArray(data, setData)
+  const array = useFormArray(data, setData)
 
-	return (
-		<>
-			{[...array.items, array.newItem].map(({ index, key, value, newItem }) => (
-				<fieldset key={key}>
-					{newItem ? (
-						<legend>New Item</legend>
-					) : (
-						<legend>
-							Item ${index + 1}{" "}
-							<button onClick={() => array.removeItem(index)}>Delete</button>
-						</legend>
-					)}
-					{/* Also use this input to create a new item when user types */}
-					<label>
-						Name:{" "}
-						<input
-							value={value?.name ?? ""}
-							onChange={({ target: { value: inputValue } }) =>
-								newItem
-									? inputValue &&
-										array.appendItem({ name: inputValue, value: "" })
-									: array.setValue(index, { ...value, name: inputValue })
-							}
-						/>
-					</label>
-					{/* Only display this input for existing items */}
-					{!newItem && (
-						<label>
-							Value:{" "}
-							<input
-								value={value.value}
-								onChange={({ target: { value: inputValue } }) =>
-									array.setValue(index, { ...value, value: inputValue })
-								}
-								disabled={newItem}
-							/>
-						</label>
-					)}
-				</fieldset>
-			))}
-		</>
-	)
+  return (
+    <>
+      {[...array.items, array.newItem].map(({ index, key, value, newItem }) => (
+        <fieldset key={key}>
+          {newItem ? (
+            <legend>New Item</legend>
+          ) : (
+            <legend>
+              Item ${index + 1}{" "}
+              <button onClick={() => array.removeItem(index)}>Delete</button>
+            </legend>
+          )}
+          {/* Also use this input to create a new item when user types */}
+          <label>
+            Name:{" "}
+            <input
+              value={value?.name ?? ""}
+              onChange={({ target: { value: inputValue } }) =>
+                newItem
+                  ? inputValue &&
+                    array.appendItem({ name: inputValue, value: "" })
+                  : array.setValue(index, { ...value, name: inputValue })
+              }
+            />
+          </label>
+          {/* Only display this input for existing items */}
+          {!newItem && (
+            <label>
+              Value:{" "}
+              <input
+                value={value.value}
+                onChange={({ target: { value: inputValue } }) =>
+                  array.setValue(index, { ...value, value: inputValue })
+                }
+                disabled={newItem}
+              />
+            </label>
+          )}
+        </fieldset>
+      ))}
+    </>
+  )
 }
 ```
 
@@ -132,74 +132,74 @@ function DataForm() {
 
 ```tsx
 type Data = {
-	name: string
-	option1?: boolean
-	option2?: boolean
-	option3?: boolean
+  name: string
+  option1?: boolean
+  option2?: boolean
+  option3?: boolean
 }
 
 function DataForm({
-	data,
-	setData,
-	errors,
+  data,
+  setData,
+  errors,
 }: {
-	data: Data[] | undefined
-	setData: (data: Data[]) => void
-	errors: Partial<Record<number, string>>
+  data: Data[] | undefined
+  setData: (data: Data[]) => void
+  errors: Partial<Record<number, string>>
 }) {
-	const array = useFormArray(data, setData, {
-		initMetas: (value): { error?: string; showOptions: boolean } => ({
-			// On initialization, show the options if any option is checked
-			showOptions: value.option1 || value.option2 || value.option3 || false,
-		}),
-	})
+  const array = useFormArray(data, setData, {
+    initMetas: (value): { error?: string; showOptions: boolean } => ({
+      // On initialization, show the options if any option is checked
+      showOptions: value.option1 || value.option2 || value.option3 || false,
+    }),
+  })
 
-	useEffect(() => {
-		array.setMetas("error", errors)
-	}, [errors, array.setMetas])
+  useEffect(() => {
+    array.setMetas("error", errors)
+  }, [errors, array.setMetas])
 
-	return (
-		<>
-			{[...array.items].map(({ index, key, value, meta }) => (
-				<fieldset key={key}>
-					<legend>Item ${index + 1}</legend>
-					<label>
-						Name:{" "}
-						<input
-							value={value.name}
-							onChange={({ target: { value: inputValue } }) =>
-								array.setValue(index, { ...value, name: inputValue })
-							}
-						/>
-					</label>
-					{/* Show the error if any */}
-					{meta.error && <span className="error">{meta.error}</span>}
-					{/* A foldable component to show the possible options */}
-					<span
-						onClick={() =>
-							array.setMeta(index, "showOptions", !meta.showOptions)
-						}
-					>
-						Show Options
-					</span>
-					<div style={meta.showOptions ? undefined : { display: "none" }}>
-						{(["option1", "option2", "option3"] as const).map((field) => (
-							<label key={field}>
-								{field}:{" "}
-								<input
-									type="checkbox"
-									checked={value[field] || false}
-									onChange={({ target: { checked: inputChecked } }) =>
-										array.setValue(index, { ...value, [field]: inputChecked })
-									}
-								/>
-							</label>
-						))}
-					</div>
-				</fieldset>
-			))}
-		</>
-	)
+  return (
+    <>
+      {[...array.items].map(({ index, key, value, meta }) => (
+        <fieldset key={key}>
+          <legend>Item ${index + 1}</legend>
+          <label>
+            Name:{" "}
+            <input
+              value={value.name}
+              onChange={({ target: { value: inputValue } }) =>
+                array.setValue(index, { ...value, name: inputValue })
+              }
+            />
+          </label>
+          {/* Show the error if any */}
+          {meta.error && <span className="error">{meta.error}</span>}
+          {/* A foldable component to show the possible options */}
+          <span
+            onClick={() =>
+              array.setMeta(index, "showOptions", !meta.showOptions)
+            }
+          >
+            Show Options
+          </span>
+          <div style={meta.showOptions ? undefined : { display: "none" }}>
+            {(["option1", "option2", "option3"] as const).map((field) => (
+              <label key={field}>
+                {field}:{" "}
+                <input
+                  type="checkbox"
+                  checked={value[field] || false}
+                  onChange={({ target: { checked: inputChecked } }) =>
+                    array.setValue(index, { ...value, [field]: inputChecked })
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ))}
+    </>
+  )
 }
 ```
 
@@ -217,39 +217,39 @@ function DataForm({
 
 ```ts
 function DataForm() {
-	type Data = { name: string }
-	type Meta = { error?: string }
+  type Data = { name: string }
+  type Meta = { error?: string }
 
-	const [data, setData] = useState<Data[]>([])
+  const [data, setData] = useState<Data[]>([])
 
-	const array = useFormArray<Data, Meta>(data, setData)
+  const array = useFormArray<Data, Meta>(data, setData)
 
-	const sortItems = () =>
-		array.setItems((items) =>
-			items.sort((a, b) => a.value.name.localeCompare(b.value.name)),
-		)
+  const sortItems = () =>
+    array.setItems((items) =>
+      items.sort((a, b) => a.value.name.localeCompare(b.value.name)),
+    )
 
-	const removeErrorItems = () =>
-		array.setItems((items) => items.filter((item) => !item.meta.error))
+  const removeErrorItems = () =>
+    array.setItems((items) => items.filter((item) => !item.meta.error))
 
-	const addItems = (...names: string[]) =>
-		array.setItems((items) => [
-			...items,
-			...names.map((name) => ({
-				value: {
-					name,
-				},
-			})),
-		])
+  const addItems = (...names: string[]) =>
+    array.setItems((items) => [
+      ...items,
+      ...names.map((name) => ({
+        value: {
+          name,
+        },
+      })),
+    ])
 
-	const doubleItems = () =>
-		array.setItems((items) => {
-			const doubledItems: UpdatedFormArrayItems<typeof items> = []
-			for (const item of items) {
-				doubledItems.push(item, { value: item.value })
-			}
-			return doubledItems
-		})
+  const doubleItems = () =>
+    array.setItems((items) => {
+      const doubledItems: UpdatedFormArrayItems<typeof items> = []
+      for (const item of items) {
+        doubledItems.push(item, { value: item.value })
+      }
+      return doubledItems
+    })
 }
 ```
 
@@ -318,53 +318,53 @@ useFormMap<Type, Key=string, Meta={}>(values, setValues [, options])
 
 ```tsx
 function DataForm() {
-	const [data, setData] = useState<Record<string, string>>({})
+  const [data, setData] = useState<Record<string, string>>({})
 
-	const map = useFormMap(data, setData)
+  const map = useFormMap(data, setData)
 
-	return (
-		<>
-			{[...map.items, map.newItem].map(
-				({ index, key, mapKey, value, newItem }) => (
-					<fieldset key={key}>
-						{newItem ? (
-							<legend>New Item</legend>
-						) : (
-							<legend>
-								Item ${index + 1}{" "}
-								<button onClick={() => map.removeItem(index)}>Delete</button>
-							</legend>
-						)}
-						{/* Also use this input to create a new item when user types */}
-						<label>
-							Name:{" "}
-							<input
-								value={mapKey ?? ""}
-								onChange={({ target: { value: inputValue } }) =>
-									newItem
-										? inputValue && map.appendItem(inputValue, "")
-										: map.setMapKey(index, inputValue)
-								}
-							/>
-						</label>
-						{/* Only display this input for existing items */}
-						{!newItem && (
-							<label>
-								Value:{" "}
-								<input
-									value={value}
-									onChange={({ target: { value: inputValue } }) =>
-										map.setValue(index, inputValue)
-									}
-									disabled={newItem}
-								/>
-							</label>
-						)}
-					</fieldset>
-				),
-			)}
-		</>
-	)
+  return (
+    <>
+      {[...map.items, map.newItem].map(
+        ({ index, key, mapKey, value, newItem }) => (
+          <fieldset key={key}>
+            {newItem ? (
+              <legend>New Item</legend>
+            ) : (
+              <legend>
+                Item ${index + 1}{" "}
+                <button onClick={() => map.removeItem(index)}>Delete</button>
+              </legend>
+            )}
+            {/* Also use this input to create a new item when user types */}
+            <label>
+              Name:{" "}
+              <input
+                value={mapKey ?? ""}
+                onChange={({ target: { value: inputValue } }) =>
+                  newItem
+                    ? inputValue && map.appendItem(inputValue, "")
+                    : map.setMapKey(index, inputValue)
+                }
+              />
+            </label>
+            {/* Only display this input for existing items */}
+            {!newItem && (
+              <label>
+                Value:{" "}
+                <input
+                  value={value}
+                  onChange={({ target: { value: inputValue } }) =>
+                    map.setValue(index, inputValue)
+                  }
+                  disabled={newItem}
+                />
+              </label>
+            )}
+          </fieldset>
+        ),
+      )}
+    </>
+  )
 }
 ```
 
@@ -384,81 +384,81 @@ function DataForm() {
 
 ```tsx
 type Data = {
-	name: string
-	option1?: boolean
-	option2?: boolean
-	option3?: boolean
+  name: string
+  option1?: boolean
+  option2?: boolean
+  option3?: boolean
 }
 
 function DataForm({
-	data,
-	setData,
-	errors,
+  data,
+  setData,
+  errors,
 }: {
-	data: Record<string, Data> | undefined
-	setData: (data: Record<string, Data>) => void
-	errors: Partial<Record<string, string>>
+  data: Record<string, Data> | undefined
+  setData: (data: Record<string, Data>) => void
+  errors: Partial<Record<string, string>>
 }) {
-	const map = useFormMap(data, setData, {
-		initMetas: (value): { error?: string; showOptions: boolean } => ({
-			// On initialization, show the options if any option is checked
-			showOptions: value.option1 || value.option2 || value.option3 || false,
-		}),
-	})
+  const map = useFormMap(data, setData, {
+    initMetas: (value): { error?: string; showOptions: boolean } => ({
+      // On initialization, show the options if any option is checked
+      showOptions: value.option1 || value.option2 || value.option3 || false,
+    }),
+  })
 
-	useEffect(() => {
-		map.setMetas("error", errors)
-	}, [errors, map.setMetas])
+  useEffect(() => {
+    map.setMetas("error", errors)
+  }, [errors, map.setMetas])
 
-	return (
-		<>
-			{[...map.items].map(
-				({ index, key, value, meta, duplicated, ignored }) => (
-					<fieldset key={key}>
-						<legend>Item ${index + 1}</legend>
-						<label style={ignored ? { opacity: 0.6 } : undefined}>
-							Name:{" "}
-							<input
-								value={value.name}
-								onChange={({ target: { value: inputValue } }) =>
-									map.setValue(index, { ...value, name: inputValue })
-								}
-							/>
-						</label>
-						{/* Show the error if any */}
-						{duplicated ||
-							(meta.error && (
-								<span className="error">
-									{duplicated ? "duplicated item" : meta.error}
-								</span>
-							))}
-						{/* A foldable component to show the possible options */}
-						<span
-							onClick={() =>
-								map.setMeta(index, "showOptions", !meta.showOptions)
-							}
-						>
-							Show Options
-						</span>
-						<div style={meta.showOptions ? undefined : { display: "none" }}>
-							{(["option1", "option2", "option3"] as const).map((field) => (
-								<label key={field}>
-									{field}:{" "}
-									<input
-										type="checkbox"
-										checked={value[field] || false}
-										onChange={({ target: { checked: inputChecked } }) =>
-											map.setValue(index, { ...value, [field]: inputChecked })
-										}
-									/>
-								</label>
-							))}
-						</div>
-					</fieldset>
-				),
-			)}
-		</>
-	)
+  return (
+    <>
+      {[...map.items].map(
+        ({ index, key, value, meta, duplicated, ignored }) => (
+          <fieldset key={key}>
+            <legend>Item ${index + 1}</legend>
+            <label style={ignored ? { opacity: 0.6 } : undefined}>
+              Name:{" "}
+              <input
+                value={value.name}
+                onChange={({ target: { value: inputValue } }) =>
+                  map.setValue(index, { ...value, name: inputValue })
+                }
+              />
+            </label>
+            {/* Show the error if any */}
+            {duplicated ||
+              (meta.error && (
+                <span className="error">
+                  {duplicated ? "duplicated item" : meta.error}
+                </span>
+              ))}
+            {/* A foldable component to show the possible options */}
+            <span
+              onClick={() =>
+                map.setMeta(index, "showOptions", !meta.showOptions)
+              }
+            >
+              Show Options
+            </span>
+            <div style={meta.showOptions ? undefined : { display: "none" }}>
+              {(["option1", "option2", "option3"] as const).map((field) => (
+                <label key={field}>
+                  {field}:{" "}
+                  <input
+                    type="checkbox"
+                    checked={value[field] || false}
+                    onChange={({ target: { checked: inputChecked } }) =>
+                      map.setValue(index, { ...value, [field]: inputChecked })
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ),
+      )}
+    </>
+  )
 }
 ```
 
@@ -476,40 +476,40 @@ function DataForm({
 
 ```ts
 function DataForm() {
-	type Meta = { error?: string }
+  type Meta = { error?: string }
 
-	const [data, setData] = useState<Record<string, string>>({})
+  const [data, setData] = useState<Record<string, string>>({})
 
-	const map = useFormMap<string, string, Meta>(data, setData)
+  const map = useFormMap<string, string, Meta>(data, setData)
 
-	const sortItems = () =>
-		map.setItems((items) =>
-			items.sort((a, b) => a.mapKey.localeCompare(b.mapKey)),
-		)
+  const sortItems = () =>
+    map.setItems((items) =>
+      items.sort((a, b) => a.mapKey.localeCompare(b.mapKey)),
+    )
 
-	const removeErrorItems = () =>
-		map.setItems((items) => items.filter((item) => !item.meta.error))
+  const removeErrorItems = () =>
+    map.setItems((items) => items.filter((item) => !item.meta.error))
 
-	const addItems = (...names: string[]) =>
-		map.setItems((items) => [
-			...items,
-			...names.map((name) => ({
-				mapKey: name,
-				value: name,
-			})),
-		])
+  const addItems = (...names: string[]) =>
+    map.setItems((items) => [
+      ...items,
+      ...names.map((name) => ({
+        mapKey: name,
+        value: name,
+      })),
+    ])
 
-	const doubleItems = () =>
-		map.setItems((items) => {
-			const doubledItems: UpdatedFormMapItems<typeof items> = []
-			for (const item of items) {
-				doubledItems.push(item, {
-					mapKey: item.mapKey + "-doubled",
-					value: item.value,
-				})
-			}
-			return doubledItems
-		})
+  const doubleItems = () =>
+    map.setItems((items) => {
+      const doubledItems: UpdatedFormMapItems<typeof items> = []
+      for (const item of items) {
+        doubledItems.push(item, {
+          mapKey: item.mapKey + "-doubled",
+          value: item.value,
+        })
+      }
+      return doubledItems
+    })
 }
 ```
 

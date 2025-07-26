@@ -1,26 +1,25 @@
 {
-	"name": "react-array-hook",
-	"author": "Aurelien Lambert",
-	"type": "module",
-	"version": "0.0.01",
-	"main": "./lib/main.js",
-	"types": "./lib/main.d.ts",
-	"scripts": {
-		"build": "tsc --build"
-	},
-	"devDependencies": {
-		"@types/react": "^19.0.0",
-		"@typescript-eslint/eslint-plugin": "^8.0.0",
-		"eslint": "^6.0.0",
-		"eslint-plugin-react": "^7.0.0",
-		"eslint-plugin-react-hooks": "^4.0.0",
-		"prettier": "^3.0.0",
-		"react": "^19.0.0",
-		"typescript": "^5.0.0"
-	},
-	"prettier": {
-		"semi": false,
-		"tabWidth": 2,
-		"useTabs": true
-	}
+  "name": "react-array-hook",
+  "author": "Aurelien Lambert",
+  "type": "module",
+  "version": "0.0.01",
+  "main": "./lib/main.js",
+  "types": "./lib/main.d.ts",
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "eslint": "^6.0.0",
+    "eslint-plugin-react": "^7.0.0",
+    "eslint-plugin-react-hooks": "^4.0.0",
+    "prettier": "^3.0.0",
+    "react": "^19.0.0",
+    "typescript": "^5.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "tabWidth": 2
+  }
 }
