@@ -18,8 +18,10 @@ The following hooks are provided:
 Manages an array. Provides unique key and metadata stable through reordering.
 
 ```ts
-useFormArray<Type, Meta={}>(values, setValues [, options])
+const array = useFormArray<Type, Meta={}>(values, setValues [, options])
 ```
+
+#### arguments
 
 - `Type` — The array item type
 - `Meta` — The type of metadata, must be an object, default empty
@@ -27,6 +29,32 @@ useFormArray<Type, Meta={}>(values, setValues [, options])
 - `setValues` ( `(values: Type[]) => void` ) — The setter for the array
 - `options`:
   - `initMetas` ( `(value: Type) => Meta` ) — Function that initate the metadata of each item
+
+#### properties
+
+- `items` ( `FormArrayItem<Type, Meta>[]` ) — The mirrored items with unique keys
+  - `item.index` — The numberic index of the item
+  - `item.key` — A unique key to use as `key={key}` property
+  - `item.value` ( `Type` ) — The value associated to the item
+  - `item.meta` ( `Meta` ) — The metadata associated to the item
+  - `item.newItem` — `true` for `newItem` appendable item
+- `appendKey` — The unique key used for the next appened item
+- `newItem` ( `NewFormArrayItem` ) — An appendable item to be concatenated with `items`
+- `setItems(action)` — Fully reorganizes item, new items can be added as `{value}`
+- `setValue(index, value [, meta])` — Sets the value at the given index
+- `valueSetter(index) => setter(action)` — Returns a setter for the value at the given index
+- `appendItem(value, [, meta])` — Appends a new item with the unique key `appendKey`
+- `insertItem(index, value, [, meta])` — Inserts a new item at the given index
+- `removeItem(index)` — Removes the item at the given index
+- `moveItem(from, to)` — Moves the item at the given index to the given index
+- `resetMetas([initMetas])` — Resets the metadata of all the items using a function
+- `resetMeta(index, meta)` — Resets the metadata of the item at the given index
+- `setMetas(field, metas)` — Sets the metadata associated to a key of all items
+  - `metas: undefined` — metadata are reset to `undefined` for the field
+  - `metas: {[index]: Meta[field]}` — metadata are reset to value for each key
+  - `metas: (value, index, item) => Meta[field]` — metadata are reset using the function
+- `setMeta(index, field, meta)` — Sets the metadata associated to a key of the item at the given index
+- `metaSetter(index, field) => setter(action)` — Returns a setter for the metadata associated to a key of the item at the given index
 
 ### Appendable and removable items
 
@@ -228,32 +256,6 @@ function DataForm() {
 
 </details>
 
-### Returned properties
-
-- `items` ( `FormArrayItem<Type, Meta>[]` ) — The mirrored items with unique keys
-  - `index` — The numberic index of the item
-  - `key` — A unique key to use as `key={key}` property
-  - `value` ( `Type` ) — The value associated to the item
-  - `meta` ( `Meta` ) — The metadata associated to the item
-  - `newItem` — `true` for `newItem` appendable item
-- `appendKey` — The unique key used for the next appened item
-- `newItem` ( `NewFormArrayItem` ) — An appendable item to be concatenated with `items`
-- `setItems(action)` — Fully reorganizes item, new items can be added as `{value}`
-- `setValue(index, value [, meta])` — Sets the value at the given index
-- `valueSetter(index) => setter(action)` — Returns a setter for the value at the given index
-- `appendItem(value, [, meta])` — Appends a new item with the unique key `appendKey`
-- `insertItem(index, value, [, meta])` — Inserts a new item at the given index
-- `removeItem(index)` — Removes the item at the given index
-- `moveItem(from, to)` — Moves the item at the given index to the given index
-- `resetMetas([initMetas])` — Resets the metadata of all the items using a function
-- `resetMeta(index, meta)` — Resets the metadata of the item at the given index
-- `setMetas(field, metas)` — Sets the metadata associated to a key of all items
-  - `metas: undefined` — metadata are reset to `undefined` for the field
-  - `metas: {[index]: Meta[field]}` — metadata are reset to value for each key
-  - `metas: (value, index, item) => Meta[field]` — metadata are reset using the function
-- `setMeta(index, field, meta)` — Sets the metadata associated to a key of the item at the given index
-- `metaSetter(index, field) => setter(action)` — Returns a setter for the metadata associated to a key of the item at the given index
-
 ## `useFormMap`
 
 Manages a map. Provides unique key and metadata stable through map key update.
@@ -261,6 +263,8 @@ Manages a map. Provides unique key and metadata stable through map key update.
 ```ts
 useFormMap<Type, Key=string, Meta={}>(values, setValues [, options])
 ```
+
+#### arguments
 
 - `Type` — The map value type
 - `Key` — The map key type, must be a string
@@ -270,6 +274,36 @@ useFormMap<Type, Key=string, Meta={}>(values, setValues [, options])
 - `options`:
   - `initMetas` ( `(value: Type, mapKey: Key) => Meta` ) — Function that initate the metadata of each item
   - `sort` (`boolean | (entry1, entry2: [Key, Type]) => number`) — `true` to sort map keys on intialization, or a comparator function to provide a specific order
+
+#### properties
+
+- `items` ( `FormMapItem<Type, Key, Meta>[]` ) — The mirrored items with unique keys
+  - `item.index` — The numberic index of the item
+  - `item.key` — A unique key to use as `key={key}` property
+  - `item.mapKey` ( `Key` ) — The map key associated to the item
+  - `item.value` ( `Type` ) — The value associated to the item
+  - `item.meta` ( `Meta` ) — The metadata associated to the item
+  - `item.duplicated` — `true` if several items share this map key
+  - `item.ignored` — `true` if this map value isn't used because duplicated
+  - `item.newItem` — `true` for `newItem` appendable item
+- `appendKey` — The unique key used for the next appened item
+- `newItem` ( `NewFormMapItem` ) — An appendable item to be concatenated with `items`
+- `setItems(action)` — Fully reorganizes item, new items can be added as `{value}`
+- `setMapKey(index, mapKey)` — Sets the map key at the given index
+- `setValue(index, value [, meta])` — Sets the value at the given index
+- `valueSetter(index) => setter(action)` — Returns a setter for the value at the given index
+- `appendItem(mapKey, value, [, meta])` — Appends a new item with the unique key `appendKey`
+- `insertItem(index, mapKey, value, [, meta])` — Inserts a new item at the given index
+- `removeItem(index)` — Removes the item at the given index
+- `moveItem(from, to)` — Moves the item at the given index to the given index
+- `resetMetas([initMetas])` — Resets the metadata of all the items using a function
+- `resetMeta(index, meta)` — Resets the metadata of the item at the given index
+- `setMetas(field, metas)` — Sets the metadata associated to a key of all items
+  - `metas: undefined` — metadata are reset to `undefined` for the field
+  - `metas: {[key]: Meta[field]}` — metadata are reset to value for each key (`undefined` for ignored items)
+  - `metas: (value, key, item) => Meta[field]` — metadata are reset using the function
+- `setMeta(index, field, meta)` — Sets the metadata associated to a key of the item at the given index
+- `metaSetter(index, field) => setter(action)` — Returns a setter for the metadata associated to a key of the item at the given index
 
 ### Appendable and removable items
 
@@ -343,6 +377,8 @@ function DataForm() {
 - Use `item.meta` to read the metadata of an item.
 - Call `setMeta` to set a specific field of the metadata to one item.
 - Call `setMetas` to set a specific field of the metadata for all the items.
+- Use `item.duplicated` to show if the map key is duplicated
+- Use `item.ignored` to show if the item is ignored because duplicated
 
 <details>
 <summary>Show example code</summary>
@@ -377,47 +413,51 @@ function DataForm({
 
 	return (
 		<>
-			{[...map.items].map(({ index, key, value, meta, duplicated, extra }) => (
-				<fieldset key={key} style={extra ? { opacity: 0.6 } : undefined}>
-					<legend>Item ${index + 1}</legend>
-					<label>
-						Name:{" "}
-						<input
-							value={value.name}
-							onChange={({ target: { value: inputValue } }) =>
-								map.setValue(index, { ...value, name: inputValue })
+			{[...map.items].map(
+				({ index, key, value, meta, duplicated, ignored }) => (
+					<fieldset key={key}>
+						<legend>Item ${index + 1}</legend>
+						<label style={ignored ? { opacity: 0.6 } : undefined}>
+							Name:{" "}
+							<input
+								value={value.name}
+								onChange={({ target: { value: inputValue } }) =>
+									map.setValue(index, { ...value, name: inputValue })
+								}
+							/>
+						</label>
+						{/* Show the error if any */}
+						{duplicated ||
+							(meta.error && (
+								<span className="error">
+									{duplicated ? "duplicated item" : meta.error}
+								</span>
+							))}
+						{/* A foldable component to show the possible options */}
+						<span
+							onClick={() =>
+								map.setMeta(index, "showOptions", !meta.showOptions)
 							}
-						/>
-					</label>
-					{/* Show the error if any */}
-					{duplicated ||
-						(meta.error && (
-							<span className="error">
-								{duplicated ? "duplicated item" : meta.error}
-							</span>
-						))}
-					{/* A foldable component to show the possible options */}
-					<span
-						onClick={() => map.setMeta(index, "showOptions", !meta.showOptions)}
-					>
-						Show Options
-					</span>
-					<div style={meta.showOptions ? undefined : { display: "none" }}>
-						{(["option1", "option2", "option3"] as const).map((field) => (
-							<label key={field}>
-								{field}:{" "}
-								<input
-									type="checkbox"
-									checked={value[field] || false}
-									onChange={({ target: { checked: inputChecked } }) =>
-										map.setValue(index, { ...value, [field]: inputChecked })
-									}
-								/>
-							</label>
-						))}
-					</div>
-				</fieldset>
-			))}
+						>
+							Show Options
+						</span>
+						<div style={meta.showOptions ? undefined : { display: "none" }}>
+							{(["option1", "option2", "option3"] as const).map((field) => (
+								<label key={field}>
+									{field}:{" "}
+									<input
+										type="checkbox"
+										checked={value[field] || false}
+										onChange={({ target: { checked: inputChecked } }) =>
+											map.setValue(index, { ...value, [field]: inputChecked })
+										}
+									/>
+								</label>
+							))}
+						</div>
+					</fieldset>
+				),
+			)}
 		</>
 	)
 }
@@ -475,33 +515,3 @@ function DataForm() {
 ```
 
 </details>
-
-### Returned properties
-
-- `items` ( `FormMapItem<Type, Key, Meta>[]` ) — The mirrored items with unique keys
-  - `index` — The numberic index of the item
-  - `key` — A unique key to use as `key={key}` property
-  - `mapKey` ( `Key` ) — The map key associated to the item
-  - `value` ( `Type` ) — The value associated to the item
-  - `meta` ( `Meta` ) — The metadata associated to the item
-  - `duplicated` — `true` if several items share this map key
-  - `extra` — `true` if this map value isn't used because duplicated
-  - `newItem` — `true` for `newItem` appendable item
-- `appendKey` — The unique key used for the next appened item
-- `newItem` ( `NewFormMapItem` ) — An appendable item to be concatenated with `items`
-- `setItems(action)` — Fully reorganizes item, new items can be added as `{value}`
-- `setMapKey(index, mapKey)` — Sets the map key at the given index
-- `setValue(index, value [, meta])` — Sets the value at the given index
-- `valueSetter(index) => setter(action)` — Returns a setter for the value at the given index
-- `appendItem(mapKey, value, [, meta])` — Appends a new item with the unique key `appendKey`
-- `insertItem(index, mapKey, value, [, meta])` — Inserts a new item at the given index
-- `removeItem(index)` — Removes the item at the given index
-- `moveItem(from, to)` — Moves the item at the given index to the given index
-- `resetMetas([initMetas])` — Resets the metadata of all the items using a function
-- `resetMeta(index, meta)` — Resets the metadata of the item at the given index
-- `setMetas(field, metas)` — Sets the metadata associated to a key of all items
-  - `metas: undefined` — metadata are reset to `undefined` for the field
-  - `metas: {[key]: Meta[field]}` — metadata are reset to value for each key (`undefined` for extra items)
-  - `metas: (value, key, item) => Meta[field]` — metadata are reset using the function
-- `setMeta(index, field, meta)` — Sets the metadata associated to a key of the item at the given index
-- `metaSetter(index, field) => setter(action)` — Returns a setter for the metadata associated to a key of the item at the given index

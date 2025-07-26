@@ -41,7 +41,7 @@ export type FormMapItem<
 	/** `true` if several items share this map key */
 	readonly duplicated: boolean
 	/** `true` if this map value isn't used because duplicated */
-	readonly extra: boolean
+	readonly ignored: boolean
 	/** `true` for `newItem` appendable item */
 	readonly newItem?: never
 }
@@ -55,7 +55,7 @@ export type NewFormMapItem = {
 	readonly value?: never
 	readonly meta?: never
 	readonly duplicated?: never
-	readonly extra?: never
+	readonly ignored?: never
 	readonly newItem: true
 }
 
@@ -221,7 +221,7 @@ export const useFormMap = <
 				value,
 				meta: initMetaRef.current?.(value, mapKey) || ({} as M),
 				duplicated: false,
-				extra: false,
+				ignored: false,
 			}))
 			itemsRef.current = updatedItems
 			setItemsState(updatedItems)
@@ -276,7 +276,7 @@ export const useFormMap = <
 									initMetaRef.current?.(item.value, item.mapKey) ||
 									({} as M),
 								duplicated: false,
-								extra: true, // if key already exists, use the other value
+								ignored: true, // if key already exists, use the other value
 							},
 				),
 			)
@@ -293,7 +293,7 @@ export const useFormMap = <
 								...item,
 								mapKey: mapKey,
 								meta: meta ? { ...item.meta, meta } : item.meta,
-								extra: true, // if key already exists, use the other value
+								ignored: true, // if key already exists, use the other value
 							}
 						: item,
 				),
@@ -352,7 +352,7 @@ export const useFormMap = <
 					value: value,
 					meta: meta || ({} as M),
 					duplicated: false,
-					extra: true, // if key already exists, use the other value
+					ignored: true, // if key already exists, use the other value
 				},
 			])
 		},
@@ -370,7 +370,7 @@ export const useFormMap = <
 					value: value,
 					meta: meta || ({} as M),
 					duplicated: false,
-					extra: true, // if key already exists, use the other value
+					ignored: true, // if key already exists, use the other value
 				},
 				...itemsRef.current.slice(index),
 			]),
@@ -453,7 +453,7 @@ export const useFormMap = <
 						[field]:
 							typeof metas === "function"
 								? metas(item.value, item.mapKey, item)
-								: !item.extra && metas
+								: !item.ignored && metas
 									? metas[item.mapKey]
 									: undefined,
 					},
@@ -558,12 +558,12 @@ const areItemsCompatible = <T>(
 	const foundValues = mapFromEntries(
 		Object.keys(values ?? {}).map((mapKey) => [mapKey, false]),
 	)
-	for (const { mapKey, value, extra } of items) {
+	for (const { mapKey, value, ignored: duplicated } of items) {
 		// key doesn't exist in values
 		if (!values || !(mapKey in values)) return false
-		// item is marked as extra, skip it
-		if (extra) continue
-		// key is duplicated but not mark as extra, should never happen
+		// item is marked as duplicated, skip it
+		if (duplicated) continue
+		// key is duplicated but not mark as duplicated, should never happen
 		if (foundValues[mapKey]) return false
 		// the value associated to key is different
 		if (values[mapKey] !== value) return false
@@ -586,7 +586,7 @@ const getFixedItemsValues = <T, K extends string, M extends MetaType>(
 			{
 				index: number
 				duplicated: boolean
-				extra: boolean
+				ignored: boolean
 			}
 		>
 	> = {}
@@ -598,28 +598,28 @@ const getFixedItemsValues = <T, K extends string, M extends MetaType>(
 			selected[item.mapKey] = {
 				index,
 				duplicated: false,
-				extra: item.extra,
+				ignored: item.ignored,
 			}
 			return
 		}
 		s.duplicated = true
-		// key has been seen, but this item isn't extra, use this value instead
-		if (!item.extra && s.extra) {
+		// key has been seen, but this item isn't ignored, use this value instead
+		if (!item.ignored && s.ignored) {
 			values[item.mapKey] = item.value
 			s.index = index
-			s.extra = false
+			s.ignored = false
 		}
 	})
-	// fix index, duplicated and extra, but keep the item when possible
+	// fix index, duplicated and ignored, but keep the item when possible
 	items = items.map((item, index) => {
 		const s = selected[item.mapKey]
 		const duplicated = s?.duplicated || false
-		const extra = s?.index !== index
+		const ignored = s?.index !== index
 		return item.index === index &&
 			item.duplicated === duplicated &&
-			item.extra === extra
+			item.ignored === ignored
 			? item
-			: { ...item, index, duplicated, extra }
+			: { ...item, index, duplicated, ignored: ignored }
 	})
 
 	return [items, values] as const
