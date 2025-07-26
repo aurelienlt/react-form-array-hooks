@@ -1,4 +1,4 @@
-# react-form-array
+# react-form-array-hooks
 
 A set of hooks to help managing arrays and maps in a form.
 
