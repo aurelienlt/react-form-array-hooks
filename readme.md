@@ -1,4 +1,4 @@
-# form-array-hooks
+# react-form-array
 
 A set of hooks to help managing arrays and maps in a form.
 
@@ -11,7 +11,6 @@ The following hooks are provided:
 
 - [`useFormArray`](#useformarray) — Manages an array
 - [`useFormMap`](#useformmap) — Manages a map (string keys only), optionally ordered
-- [`useFormDrag`](#useformdrag) — Manages simple drag & drop for array or map items
 
 ## `useFormArray`
 
@@ -58,9 +57,9 @@ const array = useFormArray<Type, Meta={}>(values, setValues [, options])
 
 ### Appendable and removable items
 
-- Concatenate `items` with `newItem` in order to show an appendable item that can be appended on user input, while maintaining the same `item.key`.
+- Concatenate `items` with `newItem` in order to show an appendable item on user input, while maintaining the same `item.key`.
 - Use `item.newItem` to identify which item is the appendable item
-- Call `appendItem` to append an item with the key `appendKey`.
+- Call `appendItem` to append an item on user input with the key `appendKey`.
 - Call `setValue` to update an item value.
 - Call `removeItem` to remove an item value.
 

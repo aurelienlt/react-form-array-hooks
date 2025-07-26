@@ -38,7 +38,7 @@ export type UseFormDrag = {
 	/** The index of the target of the drag & drop, `-1` if none */
 	draggingTarget: number
 	/** The classes to assign to each element by index */
-	draggingClassNames: Partial<Record<number, string>>
+	draggingClassNames: (index: number) => string
 	/** To be asigned to the draggable elements as `onDragStart={event => onDragStart(index, event)}` */
 	onDragStart: (index: number, event: DragEvent) => void
 	/** To be asigned to the drop target elements as `onDragOver={event => onDragOver(index, event)}` */
@@ -78,9 +78,16 @@ export type UseFormDrag = {
 	}
 }
 
+/**
+ * Returns a utility object for management drag and drop on an array
+ * @param moveItem The function to move an item in the array
+ * @param options.format The format set to the drag event
+ * @param options.classNames The classes to be used in various cases
+ * @param options.styling `true` to use the default styling
+ */
 export const useFormDrag = (
 	moveItem: (from: number, to: number) => void,
-	opts?: {
+	options?: {
 		format?: string
 		classNames?: UseFormDragClasses
 		styling?: boolean
@@ -90,7 +97,7 @@ export const useFormDrag = (
 		format: optsFormat,
 		classNames: optsClassNames = DRAG_CLASSES,
 		styling,
-	} = opts ?? {}
+	} = options ?? {}
 	const dfltFormat = useMemo(() => {
 		DRAG_ID++
 		return `use-form-drag/id-${DRAG_ID}`
@@ -164,23 +171,31 @@ export const useFormDrag = (
 		before: classBefore = "",
 		after: classAfter = "",
 	} = classNames
-	const draggingClassNames = useMemo(() => {
-		const classNames: Partial<Record<number, string>> = {}
-		if (draggingSource < 0) return classNames
-		classNames[draggingSource] = classSource
-		if (draggingTarget < 0) return classNames
-		const classPosition =
-			draggingTarget < draggingSource ? classBefore : classAfter
-		classNames[draggingTarget] = `${classTarget} ${classPosition}`
-		return classNames
-	}, [
-		draggingSource,
-		draggingTarget,
-		classSource,
-		classTarget,
-		classBefore,
-		classAfter,
-	])
+	const draggingClassNames = useCallback(
+		(index: number) => {
+			if (draggingSource < 0) return ""
+			const classNames: string[] = []
+			if (index === draggingSource) classNames.push(classSource)
+			if (draggingTarget < 0) return classNames.join("")
+			if (index === draggingTarget) classNames.push(classTarget)
+			if (draggingTarget < draggingSource) {
+				if (index === draggingTarget - 1) classNames.push(classAfter)
+				if (index === draggingTarget) classNames.push(classBefore)
+			} else {
+				if (index === draggingTarget) classNames.push(classAfter)
+				if (index === draggingTarget + 1) classNames.push(classBefore)
+			}
+			return classNames.join("")
+		},
+		[
+			draggingSource,
+			draggingTarget,
+			classSource,
+			classTarget,
+			classBefore,
+			classAfter,
+		],
+	)
 
 	const draggableProps = useCallback(
 		(index: number | undefined) =>
