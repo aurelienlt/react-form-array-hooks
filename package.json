@@ -1,10 +1,13 @@
 {
-  "name": "react-array-hook",
+  "name": "react-form-array-hook",
   "author": "Aurelien Lambert",
   "type": "module",
   "version": "0.0.01",
-  "main": "./lib/main.js",
-  "types": "./lib/main.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "directories": {
+    "lib": "./lib"
+  },
   "scripts": {
     "build": "tsc --build"
   },
