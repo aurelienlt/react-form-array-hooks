@@ -478,6 +478,5 @@ const areItemsCompatible = <T>(
   values: T[] | undefined,
   items: FormArrayItem<T, MetaType>[],
 ) =>
-  (values?.length ?? 0) !== items.length ||
-  values?.some((v, i) => items[i].value !== v) ||
-  false
+  (values?.length ?? 0) === items.length &&
+  items.every((item, i) => values?.[i] === item.value)

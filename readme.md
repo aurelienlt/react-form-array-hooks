@@ -1,9 +1,10 @@
-# react-form-array-hooks
+# react-array-hook
 
 A set of hooks to help managing arrays and maps in a form.
 
 - Provides unique keys and metadata stable through reordering
 - Intuitive "new item on user input" mode
+- Provides a simple drag & drop reordering hook
 - Compatible with `useState` or any form manager
 - Simple to use and typed
 
@@ -11,6 +12,7 @@ The following hooks are provided:
 
 - [`useFormArray`](#useformarray) — Manages an array
 - [`useFormMap`](#useformmap) — Manages a map (string keys only), optionally ordered
+- [`useFormDrag`](#useformdrag) — Manages drag & drop reordering
 
 ## `useFormArray`
 
@@ -67,51 +69,56 @@ const array = useFormArray<Type, Meta={}>(values, setValues [, options])
 <summary>Show example code</summary>
 
 ```tsx
-function DataForm() {
-  type Data = { name: string; value: string }
-  const [data, setData] = useState<Data[]>([])
+type Data = { name: string; value: string }
 
+export function DataForm({
+  data,
+  setData,
+}: {
+  data: Data[] | undefined
+  setData: (data: Data[]) => void
+}) {
   const array = useFormArray(data, setData)
 
   return (
     <>
       {[...array.items, array.newItem].map(({ index, key, value, newItem }) => (
-        <fieldset key={key}>
-          {newItem ? (
-            <legend>New Item</legend>
-          ) : (
-            <legend>
-              Item ${index + 1}{" "}
-              <button onClick={() => array.removeItem(index)}>Delete</button>
-            </legend>
-          )}
+        <Box component="fieldset" key={key}>
+          <legend>
+            {newItem ? (
+              <Typography>New Item</Typography>
+            ) : (
+              <Typography>
+                <IconButton onClick={() => array.removeItem(index)}>
+                  X
+                </IconButton>
+                Item {index + 1}
+              </Typography>
+            )}
+          </legend>
           {/* Also use this input to create a new item when user types */}
-          <label>
-            Name:{" "}
-            <input
-              value={value?.name ?? ""}
-              onChange={({ target: { value: inputValue } }) =>
-                newItem
-                  ? inputValue &&
-                    array.appendItem({ name: inputValue, value: "" })
-                  : array.setValue(index, { ...value, name: inputValue })
-              }
-            />
-          </label>
+          <TextField
+            label="Name"
+            value={value?.name ?? ""}
+            onChange={({ target: { value: inputValue } }) =>
+              newItem
+                ? inputValue &&
+                  array.appendItem({ name: inputValue, value: "" })
+                : array.setValue(index, { ...value, name: inputValue })
+            }
+          />
           {/* Only display this input for existing items */}
           {!newItem && (
-            <label>
-              Value:{" "}
-              <input
-                value={value.value}
-                onChange={({ target: { value: inputValue } }) =>
-                  array.setValue(index, { ...value, value: inputValue })
-                }
-                disabled={newItem}
-              />
-            </label>
+            <TextField
+              label="Value"
+              value={value.value}
+              onChange={({ target: { value: inputValue } }) =>
+                array.setValue(index, { ...value, value: inputValue })
+              }
+              disabled={newItem}
+            />
           )}
-        </fieldset>
+        </Box>
       ))}
     </>
   )
@@ -154,49 +161,50 @@ function DataForm({
     }),
   })
 
+  const { setMetas } = array
   useEffect(() => {
-    array.setMetas("error", errors)
-  }, [errors, array.setMetas])
+    setMetas("error", errors)
+  }, [errors, setMetas])
 
   return (
     <>
-      {[...array.items].map(({ index, key, value, meta }) => (
-        <fieldset key={key}>
-          <legend>Item ${index + 1}</legend>
-          <label>
-            Name:{" "}
-            <input
-              value={value.name}
-              onChange={({ target: { value: inputValue } }) =>
-                array.setValue(index, { ...value, name: inputValue })
-              }
-            />
-          </label>
+      {array.items.map(({ index, key, value, meta }) => (
+        <Box component="fieldset" key={key}>
+          <legend>
+            <Typography>Item {index + 1}</Typography>
+          </legend>
+          <TextField
+            label="Name"
+            value={value.name}
+            onChange={({ target: { value: inputValue } }) =>
+              array.setValue(index, { ...value, name: inputValue })
+            }
+          />
           {/* Show the error if any */}
-          {meta.error && <span className="error">{meta.error}</span>}
+          {meta.error && <Alert color="error">{meta.error}</Alert>}
           {/* A foldable component to show the possible options */}
-          <span
-            onClick={() =>
-              array.setMeta(index, "showOptions", !meta.showOptions)
+          <Accordion
+            expanded={meta.showOptions}
+            onChange={(_, expanded) =>
+              array.setMeta(index, "showOptions", expanded)
             }
           >
-            Show Options
-          </span>
-          <div style={meta.showOptions ? undefined : { display: "none" }}>
-            {(["option1", "option2", "option3"] as const).map((field) => (
-              <label key={field}>
-                {field}:{" "}
-                <input
-                  type="checkbox"
-                  checked={value[field] || false}
-                  onChange={({ target: { checked: inputChecked } }) =>
-                    array.setValue(index, { ...value, [field]: inputChecked })
-                  }
-                />
-              </label>
-            ))}
-          </div>
-        </fieldset>
+            <AccordionSummary>Show Options</AccordionSummary>
+            <AccordionDetails>
+              {(["option1", "option2", "option3"] as const).map((field) => (
+                <InputLabel key={field}>
+                  {field}:{" "}
+                  <Checkbox
+                    checked={value[field] || false}
+                    onChange={({ target: { checked: inputChecked } }) =>
+                      array.setValue(index, { ...value, [field]: inputChecked })
+                    }
+                  />
+                </InputLabel>
+              ))}
+            </AccordionDetails>
+          </Accordion>
+        </Box>
       ))}
     </>
   )
@@ -216,12 +224,16 @@ function DataForm({
 <summary>Show example code</summary>
 
 ```ts
-function DataForm() {
-  type Data = { name: string }
-  type Meta = { error?: string }
+type Data = { name: string }
+type Meta = { error?: string }
 
-  const [data, setData] = useState<Data[]>([])
-
+function DataForm({
+  data,
+  setData,
+}: {
+  data: Record<string, string> | undefined
+  setData: (data: Record<string, string>) => void
+}) {
   const array = useFormArray<Data, Meta>(data, setData)
 
   const sortItems = () =>
@@ -317,50 +329,54 @@ useFormMap<Type, Key=string, Meta={}>(values, setValues [, options])
 <summary>Show example code</summary>
 
 ```tsx
-function DataForm() {
-  const [data, setData] = useState<Record<string, string>>({})
-
+function DataForm({
+  data,
+  setData,
+}: {
+  data: Record<string, string> | undefined
+  setData: (data: Record<string, string>) => void
+}) {
   const map = useFormMap(data, setData)
 
   return (
     <>
       {[...map.items, map.newItem].map(
         ({ index, key, mapKey, value, newItem }) => (
-          <fieldset key={key}>
-            {newItem ? (
-              <legend>New Item</legend>
-            ) : (
-              <legend>
-                Item ${index + 1}{" "}
-                <button onClick={() => map.removeItem(index)}>Delete</button>
-              </legend>
-            )}
+          <Box component="fieldset" key={key}>
+            <legend>
+              {newItem ? (
+                <Typography>New Item</Typography>
+              ) : (
+                <Typography>
+                  <IconButton onClick={() => map.removeItem(index)}>
+                    X
+                  </IconButton>
+                  Item {index + 1}
+                </Typography>
+              )}
+            </legend>
             {/* Also use this input to create a new item when user types */}
-            <label>
-              Name:{" "}
-              <input
-                value={mapKey ?? ""}
-                onChange={({ target: { value: inputValue } }) =>
-                  newItem
-                    ? inputValue && map.appendItem(inputValue, "")
-                    : map.setMapKey(index, inputValue)
-                }
-              />
-            </label>
+            <TextField
+              label="Name"
+              value={mapKey ?? ""}
+              onChange={({ target: { value: inputValue } }) =>
+                newItem
+                  ? inputValue && map.appendItem(inputValue, "")
+                  : map.setMapKey(index, inputValue)
+              }
+            />
             {/* Only display this input for existing items */}
             {!newItem && (
-              <label>
-                Value:{" "}
-                <input
-                  value={value}
-                  onChange={({ target: { value: inputValue } }) =>
-                    map.setValue(index, inputValue)
-                  }
-                  disabled={newItem}
-                />
-              </label>
+              <TextField
+                label="Value"
+                value={value}
+                onChange={({ target: { value: inputValue } }) =>
+                  map.setValue(index, inputValue)
+                }
+                disabled={newItem}
+              />
             )}
-          </fieldset>
+          </Box>
         ),
       )}
     </>
@@ -397,7 +413,7 @@ function DataForm({
 }: {
   data: Record<string, Data> | undefined
   setData: (data: Record<string, Data>) => void
-  errors: Partial<Record<string, string>>
+  errors: Partial<Record<number, string>>
 }) {
   const map = useFormMap(data, setData, {
     initMetas: (value): { error?: string; showOptions: boolean } => ({
@@ -406,55 +422,56 @@ function DataForm({
     }),
   })
 
+  const { setMetas } = map
   useEffect(() => {
-    map.setMetas("error", errors)
-  }, [errors, map.setMetas])
+    setMetas("error", errors)
+  }, [errors, setMetas])
 
   return (
     <>
-      {[...map.items].map(
-        ({ index, key, value, meta, duplicated, ignored }) => (
-          <fieldset key={key}>
-            <legend>Item ${index + 1}</legend>
-            <label style={ignored ? { opacity: 0.6 } : undefined}>
-              Name:{" "}
-              <input
-                value={value.name}
-                onChange={({ target: { value: inputValue } }) =>
-                  map.setValue(index, { ...value, name: inputValue })
-                }
-              />
-            </label>
+      {map.items.map(
+        ({ index, key, mapKey, value, meta, duplicated, ignored }) => (
+          <Box component="fieldset" key={key}>
+            <legend>
+              <Typography>Item: {mapKey}</Typography>
+            </legend>
+            <TextField
+              sx={ignored ? { opacity: 0.6 } : undefined}
+              label="Name"
+              value={value.name}
+              onChange={({ target: { value: inputValue } }) =>
+                map.setValue(index, { ...value, name: inputValue })
+              }
+            />
             {/* Show the error if any */}
-            {duplicated ||
-              (meta.error && (
-                <span className="error">
-                  {duplicated ? "duplicated item" : meta.error}
-                </span>
-              ))}
+            {(duplicated || meta.error) && (
+              <Alert color="error">
+                {duplicated ? "duplicated item" : meta.error}
+              </Alert>
+            )}
             {/* A foldable component to show the possible options */}
-            <span
-              onClick={() =>
-                map.setMeta(index, "showOptions", !meta.showOptions)
+            <Accordion
+              expanded={meta.showOptions}
+              onChange={(_, expanded) =>
+                map.setMeta(index, "showOptions", expanded)
               }
             >
-              Show Options
-            </span>
-            <div style={meta.showOptions ? undefined : { display: "none" }}>
-              {(["option1", "option2", "option3"] as const).map((field) => (
-                <label key={field}>
-                  {field}:{" "}
-                  <input
-                    type="checkbox"
-                    checked={value[field] || false}
-                    onChange={({ target: { checked: inputChecked } }) =>
-                      map.setValue(index, { ...value, [field]: inputChecked })
-                    }
-                  />
-                </label>
-              ))}
-            </div>
-          </fieldset>
+              <AccordionSummary>Show Options</AccordionSummary>
+              <AccordionDetails>
+                {(["option1", "option2", "option3"] as const).map((field) => (
+                  <InputLabel key={field}>
+                    {field}:{" "}
+                    <Checkbox
+                      checked={value[field] || false}
+                      onChange={({ target: { checked: inputChecked } }) =>
+                        map.setValue(index, { ...value, [field]: inputChecked })
+                      }
+                    />
+                  </InputLabel>
+                ))}
+              </AccordionDetails>
+            </Accordion>
+          </Box>
         ),
       )}
     </>
@@ -475,11 +492,15 @@ function DataForm({
 <summary>Show example code</summary>
 
 ```ts
-function DataForm() {
-  type Meta = { error?: string }
+type Meta = { error?: string }
 
-  const [data, setData] = useState<Record<string, string>>({})
-
+function DataForm({
+  data,
+  setData,
+}: {
+  data: Record<string, string> | undefined
+  setData: (data: Record<string, string>) => void
+}) {
   const map = useFormMap<string, string, Meta>(data, setData)
 
   const sortItems = () =>
@@ -510,6 +531,92 @@ function DataForm() {
       }
       return doubledItems
     })
+}
+```
+
+</details>
+
+## `useFormDrag`
+
+Manages drag & drop reordering. Provides all the event listeners to simply manage drag & drop.
+
+```ts
+const drag = useFormDrag(moveItem [, options])
+```
+
+#### arguments
+
+- `moveItem` ( `(from: number, to: number) => void` ) — The function that moves the item when dropped, can use `array.moveItem` from `useFormArray`
+- `options`:
+  - `format` ( `string` ) — The format set to the drag event, a unique one will be generated by if none provided
+  - `classNames` ( `UseFormDragClasses` ) — The classes to be used in various cases
+  - `styling` ( `boolean` ) — `true` to use the default styling
+
+#### properties
+
+- `draggingSource` ( `number` ) —  The index of the source of the drag & drop, `-1` if none
+- `draggingTarget` ( `number` ) —  The index of the target of the drag & drop, `-1` if none
+- `draggingDirection` ( `"before" | "after" | undefined` ) — If the drop is set before or after the target, `"after"` when the target if after the source, `"before"` otherwise, unless set manually
+- `draggingClassNames(index)` ( `string` ) —  The classes to assign to each element by index
+- `onDragStart(index, event)` —  To be asigned to the drop target elements as `onDragOver={event => onDragOver(index, event)}`
+- `onDragOver(index, event)` —  To be asigned to the drop target elements as `onDragOver={event => onDragOver(index, event)}`
+- `onDrop(event)` —  To be asigned to the drop target elements as `onDrop={onDrop}`
+- `onDragEnd()` —  To be asigned to the draggable elements as `onDragEnd={onDragEnd}`
+- `resetDragging()` —  Cancels any ongoing drag & drop, can be assign to container element as `onMouseLeave={resetDragging}`
+- `setDragging(source=-1, target=-1, direction?)` — Manually sets `draggingSource`, `draggingTarget` and `draggingDirection`, not recommended
+- `draggableProps(index)` ( `HTMLProps` ) —  The properties to pass to the draggable elements
+- `droppableProps(index)` ( `HTMLProps` ) —  The properties to pass to the drop target elements
+- `draggingContainerProps` ( `HTMLProps` ) —  The properties to pass to the dragging container (cancels drag & drop on mouse leave event)
+
+#### classes
+
+By default, `draggingClassNames` will assign classes `use-form-drag-source`, `use-form-drag-target`, `use-form-drag-before` and `use-form-drag-after` to the items. Add CSS properties to those classes to show the status of the drag & drop, or pass your own `{classNames: {source: "", target: "", before: "", after: ""}}` option.
+
+The `source` class is assigned to the item being dragged, the `target` class is assigned to the item being hovered, and the `before` and `after` classes are assigned the the item right before and after the the position where the item will be inserted.
+
+When passing the option `{styled: true}`, additional classes will be assigned to show the default (and ugly) dragging effect: the item being dragged is half transparent, and the dropping target is an grey rounded rectangle. 
+
+### Basic usage
+
+- Assign `{...drag.draggableProps(index)}` to an icon or an element that is used to trigger dragging
+- Assign `className={drag.draggingClassNames(index)}` and `{...drag.droppableProps(index)}` to the root element of each item
+- Assign `{...drag.draggingContainerProps}` to the container of the items or an ancestor
+- Pass the option `{styled: true}` or add CSS to the default classes
+
+<details>
+<summary>Show example code</summary>
+
+```tsx
+function DataForm({
+  data,
+  setData,
+}: {
+  data: string[] | undefined
+  setData: (data: string[]) => void
+}) {
+  const array = useFormArray(data, setData)
+  const drag = useFormDrag(array.moveItem, { styling: true })
+
+  return (
+    <div {...drag.draggingContainerProps}>
+      {array.items.map(({ index, key, value }) => (
+        <div
+          className={drag.draggingClassNames(index)}
+          {...drag.droppableProps(index)}
+          key={key}
+        >
+          <Box component="fieldset">
+            <legend>
+              <Typography>Drop here</Typography>
+            </legend>
+            <Typography>
+              <Chip label="Drag here" {...drag.draggableProps(index)} /> {value}
+            </Typography>
+          </Box>
+        </div>
+      ))}
+    </div>
+  )
 }
 ```
 
