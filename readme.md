@@ -2,17 +2,17 @@
 
 A set of hooks to help managing arrays and maps in a form.
 
-- Provides unique keys and metadata stable through reordering
-- Intuitive "new item on user input" mode
-- Provides a simple drag & drop reordering hook
-- Compatible with `useState` or any form manager
-- Simple to use and typed
-
-The following hooks are provided:
-
 - [`useFormArray`](#useformarray) — Manages an array
 - [`useFormMap`](#useformmap) — Manages a map (string keys only), optionally ordered
 - [`useFormDrag`](#useformdrag) — Manages drag & drop reordering
+
+Features:
+
+- Provides unique keys and metadata objects stable through reordering
+- Intuitive "new item on user input" mode
+- Provides a quick drag & drop reordering solution
+- Compatible with `useState` or any form manager
+- Simple and typed
 
 ## `useFormArray`
 
@@ -25,27 +25,28 @@ const array = useFormArray<Type, Meta={}>(values, setValues [, options])
 #### arguments
 
 - `Type` — The array item type
-- `Meta` — The type of metadata, must be an object, default empty
+- `Meta` — The type of metadata, must be an object, easier to infer it via `options.initMetas`
 - `values` ( `Type[] | undefined` ) — The array to mirror
 - `setValues` ( `(values: Type[]) => void` ) — The setter for the array
 - `options`:
-  - `initMetas` ( `(value: Type) => Meta` ) — Function that initate the metadata of each item
+  - `initMetas` ( `(value: Type) => Meta` ) — Function that initiate the metadata of each item
 
 #### properties
 
+Data:
 - `items` ( `FormArrayItem<Type, Meta>[]` ) — The mirrored items with unique keys
-  - `item.index` — The numberic index of the item
+  - `item.index` — The numeric index of the item
   - `item.key` — A unique key to use as `key={key}` property
   - `item.value` ( `Type` ) — The value associated to the item
   - `item.meta` ( `Meta` ) — The metadata associated to the item
   - `item.newItem` — `true` for `newItem` appendable item
-- `appendKey` — The unique key used for the next appened item
+- `appendKey` — The unique key used for the next appended item
 - `newItem` ( `NewFormArrayItem` ) — An appendable item to be concatenated with `items`
-- `setItems(action)` — Fully reorganizes item, new items can be added as `{value}`
+
+Update functions:
 - `setValue(index, value [, meta])` — Sets the value at the given index
-- `valueSetter(index) => setter(action)` — Returns a setter for the value at the given index
-- `appendItem(value, [, meta])` — Appends a new item with the unique key `appendKey`
-- `insertItem(index, value, [, meta])` — Inserts a new item at the given index
+- `appendItem(value [, meta])` — Appends a new item with the unique key `appendKey`
+- `insertItem(index, value [, meta])` — Inserts a new item at the given index
 - `removeItem(index)` — Removes the item at the given index
 - `moveItem(from, to)` — Moves the item at the given index to the given index
 - `resetMetas([initMetas])` — Resets the metadata of all the items using a function
@@ -55,6 +56,10 @@ const array = useFormArray<Type, Meta={}>(values, setValues [, options])
   - `metas: {[index]: Meta[field]}` — metadata are reset to value for each key
   - `metas: (value, index, item) => Meta[field]` — metadata are reset using the function
 - `setMeta(index, field, meta)` — Sets the metadata associated to a key of the item at the given index
+
+Setters, mimics `useState` setter:
+- `setItems(action)` — Fully reorganizes items, new items can be added as `{value}`
+- `valueSetter(index) => setter(action)` — Returns a setter for the value at the given index
 - `metaSetter(index, field) => setter(action)` — Returns a setter for the metadata associated to a key of the item at the given index
 
 ### Appendable and removable items
@@ -231,8 +236,8 @@ function DataForm({
   data,
   setData,
 }: {
-  data: Record<string, string> | undefined
-  setData: (data: Record<string, string>) => void
+  data: Data[] | undefined
+  setData: (data: Data[]) => void
 }) {
   const array = useFormArray<Data, Meta>(data, setData)
 
@@ -272,24 +277,25 @@ function DataForm({
 Manages a map. Provides unique key and metadata stable through map key update.
 
 ```ts
-useFormMap<Type, Key=string, Meta={}>(values, setValues [, options])
+const map = useFormMap<Type, Key=string, Meta={}>(values, setValues [, options])
 ```
 
 #### arguments
 
 - `Type` — The map value type
 - `Key` — The map key type, must be a string
-- `Meta` — The type of metadata, must be an object, default empty
+- `Meta` — The type of metadata, must be an object, easier to infer it via `options.initMetas`
 - `values` ( `Record<Key, Type> | undefined` ) — The map to mirror
 - `setValues` ( `(values: Record<Key, Type>) => void` ) — The setter for the map
 - `options`:
-  - `initMetas` ( `(value: Type, mapKey: Key) => Meta` ) — Function that initate the metadata of each item
+  - `initMetas` ( `(value: Type, mapKey: Key) => Meta` ) — Function that initiate the metadata of each item
   - `sort` (`boolean | (entry1, entry2: [Key, Type]) => number`) — `true` to sort map keys on intialization, or a comparator function to provide a specific order
 
 #### properties
 
+Data:
 - `items` ( `FormMapItem<Type, Key, Meta>[]` ) — The mirrored items with unique keys
-  - `item.index` — The numberic index of the item
+  - `item.index` — The numeric index of the item
   - `item.key` — A unique key to use as `key={key}` property
   - `item.mapKey` ( `Key` ) — The map key associated to the item
   - `item.value` ( `Type` ) — The value associated to the item
@@ -297,14 +303,14 @@ useFormMap<Type, Key=string, Meta={}>(values, setValues [, options])
   - `item.duplicated` — `true` if several items share this map key
   - `item.ignored` — `true` if this map value isn't used because duplicated
   - `item.newItem` — `true` for `newItem` appendable item
-- `appendKey` — The unique key used for the next appened item
+- `appendKey` — The unique key used for the next appended item
 - `newItem` ( `NewFormMapItem` ) — An appendable item to be concatenated with `items`
-- `setItems(action)` — Fully reorganizes item, new items can be added as `{value}`
+
+Update functions:
 - `setMapKey(index, mapKey)` — Sets the map key at the given index
 - `setValue(index, value [, meta])` — Sets the value at the given index
-- `valueSetter(index) => setter(action)` — Returns a setter for the value at the given index
-- `appendItem(mapKey, value, [, meta])` — Appends a new item with the unique key `appendKey`
-- `insertItem(index, mapKey, value, [, meta])` — Inserts a new item at the given index
+- `appendItem(mapKey, value [, meta])` — Appends a new item with the unique key `appendKey`
+- `insertItem(index, mapKey, value [, meta])` — Inserts a new item at the given index
 - `removeItem(index)` — Removes the item at the given index
 - `moveItem(from, to)` — Moves the item at the given index to the given index
 - `resetMetas([initMetas])` — Resets the metadata of all the items using a function
@@ -314,6 +320,11 @@ useFormMap<Type, Key=string, Meta={}>(values, setValues [, options])
   - `metas: {[key]: Meta[field]}` — metadata are reset to value for each key (`undefined` for ignored items)
   - `metas: (value, key, item) => Meta[field]` — metadata are reset using the function
 - `setMeta(index, field, meta)` — Sets the metadata associated to a key of the item at the given index
+
+Setters, mimics `useState` setter:
+- `setItems(action)` — Fully reorganizes items, new items can be added as `{mapKey, value}`
+- `mapKeySetter(index) => setter(action)` — Returns a setter for the map key at the given index
+- `valueSetter(index) => setter(action)` — Returns a setter for the value at the given index
 - `metaSetter(index, field) => setter(action)` — Returns a setter for the metadata associated to a key of the item at the given index
 
 ### Appendable and removable items
@@ -486,7 +497,7 @@ function DataForm({
 - Call `setItems` to directly edit the list of items.
 - Items can be reordered or filtered.
 - Add new items using `{ mapKey: newMapKey, value: newValue }`.
-- Use `UpdatedMapArrayItems<typeof items>` to correctly type the returned items.
+- Use `UpdatedFormMapItems<typeof items>` to correctly type the returned items.
 
 <details>
 <summary>Show example code</summary>
@@ -538,7 +549,7 @@ function DataForm({
 
 ## `useFormDrag`
 
-Manages drag & drop reordering. Provides all the event listeners to simply manage drag & drop.
+Manages drag & drop reordering. Provides all the event listeners to quickly implement drag & drop.
 
 ```ts
 const drag = useFormDrag(moveItem [, options])
@@ -546,7 +557,7 @@ const drag = useFormDrag(moveItem [, options])
 
 #### arguments
 
-- `moveItem` ( `(from: number, to: number) => void` ) — The function that moves the item when dropped, can use `array.moveItem` from `useFormArray`
+- `moveItem` ( `(from: number, to: number) => void` ) — The function that moves the item when dropped, can use `moveItem` from `useFormArray`
 - `options`:
   - `format` ( `string` ) — The format set to the drag event, a unique one will be generated by if none provided
   - `classNames` ( `UseFormDragClasses` ) — The classes to be used in various cases
@@ -556,32 +567,32 @@ const drag = useFormDrag(moveItem [, options])
 
 - `draggingSource` ( `number` ) —  The index of the source of the drag & drop, `-1` if none
 - `draggingTarget` ( `number` ) —  The index of the target of the drag & drop, `-1` if none
-- `draggingDirection` ( `"before" | "after" | undefined` ) — If the drop is set before or after the target, `"after"` when the target if after the source, `"before"` otherwise, unless set manually
+- `draggingDirection` ( `"before" | "after" | undefined` ) — Where the item will be dropped, `"after"` if the target is below the source, `"before"` otherwise, unless set manually
 - `draggingClassNames(index)` ( `string` ) —  The classes to assign to each element by index
-- `onDragStart(index, event)` —  To be asigned to the drop target elements as `onDragOver={event => onDragOver(index, event)}`
-- `onDragOver(index, event)` —  To be asigned to the drop target elements as `onDragOver={event => onDragOver(index, event)}`
-- `onDrop(event)` —  To be asigned to the drop target elements as `onDrop={onDrop}`
-- `onDragEnd()` —  To be asigned to the draggable elements as `onDragEnd={onDragEnd}`
-- `resetDragging()` —  Cancels any ongoing drag & drop, can be assign to container element as `onMouseLeave={resetDragging}`
-- `setDragging(source=-1, target=-1, direction?)` — Manually sets `draggingSource`, `draggingTarget` and `draggingDirection`, not recommended
 - `draggableProps(index)` ( `HTMLProps` ) —  The properties to pass to the draggable elements
 - `droppableProps(index)` ( `HTMLProps` ) —  The properties to pass to the drop target elements
 - `draggingContainerProps` ( `HTMLProps` ) —  The properties to pass to the dragging container (cancels drag & drop on mouse leave event)
+- `onDragStart(index, event)` —  To be asigned to the draggable elements as `onDragStart={event => onDragStart(index, event)}`
+- `onDragOver(index, event)` —  To be asigned to the drop target elements as `onDragOver={event => onDragOver(index, event)}`
+- `onDrop(event)` —  To be asigned to the drop target elements as `onDrop={onDrop}`
+- `onDragEnd()` —  To be asigned to the draggable elements as `onDragEnd={onDragEnd}`
+- `resetDragging()` —  Cancels any ongoing drag & drop, can be assigned to container element as `onMouseLeave={resetDragging}`
+- `setDragging(source=-1, target=-1, direction?)` — Manually sets `draggingSource`, `draggingTarget` and `draggingDirection`, not recommended
 
 #### classes
 
-By default, `draggingClassNames` will assign classes `use-form-drag-source`, `use-form-drag-target`, `use-form-drag-before` and `use-form-drag-after` to the items. Add CSS properties to those classes to show the status of the drag & drop, or pass your own `{classNames: {source: "", target: "", before: "", after: ""}}` option.
+By default, `draggingClassNames` will assign classes `use-form-drag-source`, `use-form-drag-target`, `use-form-drag-before` and `use-form-drag-after` to the items. Add CSS properties to those classes to show the status of the drag & drop, or pass your own `{classNames: {source, target, before, after}}` option.
 
-The `source` class is assigned to the item being dragged, the `target` class is assigned to the item being hovered, and the `before` and `after` classes are assigned the the item right before and after the the position where the item will be inserted.
+The `source` class is assigned to the item being dragged, the `target` class is assigned to the item being hovered, and the `before` and `after` classes are assigned to the item right before and after the position where the dragged item will be inserted.
 
-When passing the option `{styled: true}`, additional classes will be assigned to show the default (and ugly) dragging effect: the item being dragged is half transparent, and the dropping target is an grey rounded rectangle. 
+When passing the option `{styling: true}`, additional classes will be assigned to show the default (and ugly) dragging effect: the item being dragged is half transparent, and the dropping target is an grey rounded rectangle. 
 
 ### Basic usage
 
 - Assign `{...drag.draggableProps(index)}` to an icon or an element that is used to trigger dragging
 - Assign `className={drag.draggingClassNames(index)}` and `{...drag.droppableProps(index)}` to the root element of each item
 - Assign `{...drag.draggingContainerProps}` to the container of the items or an ancestor
-- Pass the option `{styled: true}` or add CSS to the default classes
+- Pass the option `{styling: true}` or add CSS to the default classes
 
 <details>
 <summary>Show example code</summary>

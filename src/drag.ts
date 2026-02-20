@@ -37,26 +37,10 @@ export type UseFormDrag = {
   draggingSource: number
   /** The index of the target of the drag & drop, `-1` if none */
   draggingTarget: number
-  /** If the drop is set before or after the target, `"after"` when the target if after the source, `"before"` otherwise, unless set manually */
+  /** Where the item will be dropped, `"after"` if the target is below the source, `"before"` otherwise, unless set manually */
   draggingDirection: "before" | "after" | undefined
   /** The classes to assign to each element by index */
   draggingClassNames: (index: number) => string
-  /** To be asigned to the draggable elements as `onDragStart={event => onDragStart(index, event)}` */
-  onDragStart: (index: number, event: DragEvent) => void
-  /** To be asigned to the drop target elements as `onDragOver={event => onDragOver(index, event)}` */
-  onDragOver: (index: number, event: DragEvent) => void
-  /** To be asigned to the drop target elements as `onDrop={onDrop}` */
-  onDrop: (event: DragEvent) => void
-  /** To be asigned to the draggable elements as `onDragEnd={onDragEnd}` */
-  onDragEnd: () => void
-  /** Cancels any ongoing drag & drop, can be assign to container element as `onMouseLeave={resetDragging}` */
-  resetDragging: () => void
-  /** Manually sets `draggingSource`, `draggingTarget` and `draggingDirection`, not recommended */
-  setDragging: (
-    source?: number,
-    target?: number,
-    direction?: "before" | "after",
-  ) => void
   /** The properties to pass to the draggable elements */
   draggableProps: (index: number | undefined) =>
     | {
@@ -83,6 +67,22 @@ export type UseFormDrag = {
   draggingContainerProps: {
     onMouseLeave: () => void
   }
+  /** To be asigned to the draggable elements as `onDragStart={event => onDragStart(index, event)}` */
+  onDragStart: (index: number, event: DragEvent) => void
+  /** To be asigned to the drop target elements as `onDragOver={event => onDragOver(index, event)}` */
+  onDragOver: (index: number, event: DragEvent) => void
+  /** To be asigned to the drop target elements as `onDrop={onDrop}` */
+  onDrop: (event: DragEvent) => void
+  /** To be asigned to the draggable elements as `onDragEnd={onDragEnd}` */
+  onDragEnd: () => void
+  /** Cancels any ongoing drag & drop, can be assigned to container element as `onMouseLeave={resetDragging}` */
+  resetDragging: () => void
+  /** Manually sets `draggingSource`, `draggingTarget` and `draggingDirection`, not recommended */
+  setDragging: (
+    source?: number,
+    target?: number,
+    direction?: "before" | "after",
+  ) => void
 }
 
 /**
@@ -169,7 +169,7 @@ export const useFormDrag = (
 
   const onDrop = useCallback(
     (event: DragEvent) => {
-      if (draggingSource < 0) return
+      if (draggingSource < 0 || draggingTarget < 0) return
       event.preventDefault()
       moveItemRef.current(draggingSource, draggingTarget)
       setDraggingState({ draggingSource: -1, draggingTarget: -1 })
@@ -228,6 +228,7 @@ export const useFormDrag = (
     [
       draggingSource,
       draggingTarget,
+      draggingDirection,
       classSource,
       classTarget,
       classBefore,
@@ -271,30 +272,30 @@ export const useFormDrag = (
       draggingTarget,
       draggingDirection,
       draggingClassNames,
+      draggableProps,
+      droppableProps,
+      draggingContainerProps,
       onDragStart,
       onDragOver,
       onDrop,
       onDragEnd,
       resetDragging,
       setDragging,
-      draggableProps,
-      droppableProps,
-      draggingContainerProps,
     }),
     [
       draggingSource,
       draggingTarget,
       draggingDirection,
       draggingClassNames,
+      draggableProps,
+      droppableProps,
+      draggingContainerProps,
       onDragStart,
       onDragOver,
       onDrop,
       onDragEnd,
       resetDragging,
       setDragging,
-      draggableProps,
-      droppableProps,
-      draggingContainerProps,
     ],
   )
 }

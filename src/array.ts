@@ -21,7 +21,7 @@ import {
  * @template M The type of the items' metadata, must be an object
  */
 export type FormArrayItem<T, M extends MetaType = EmptyMetaType> = {
-  /** The numberic index of the item */
+  /** The numeric index of the item */
   readonly index: number
   /** A unique key to use as `key={key}` property */
   readonly key: string
@@ -75,7 +75,7 @@ export type FormArrayOptions<
   T,
   M extends Record<string, unknown> = EmptyMetaType,
 > = {
-  /** Function that initate the metadata of each item */
+  /** Function that initiate the metadata of each item */
   initMetas: (value: T) => M
 }
 
@@ -90,11 +90,11 @@ export type UseFormArray<
 > = {
   /** The mirrored items with unique keys */
   readonly items: FormArrayItem<T, M>[]
-  /** The unique key used for the next appened item */
+  /** The unique key used for the next appended item */
   readonly appendKey: string
   /** An appendable item to be concatenated with `items` */
   readonly newItem: NewFormArrayItem
-  /** Fully reorganizes item, new items can be added as `{value}` */
+  /** Fully reorganizes items, new items can be added as `{value}` */
   readonly setItems: (
     action:
       | UpdatedFormArrayItems<FormArrayItem<T, M>[]>
@@ -151,7 +151,7 @@ export type UseFormArray<
  * @template M The type of the items' metadata, must be an object
  * @param values The array to mirror
  * @param setValues The setter for the array
- * @param options.initMetas Function that initate the metadata of each item
+ * @param options.initMetas Function that initiate the metadata of each item
  */
 export const useFormArray = <
   T, // the array type cloned
@@ -243,7 +243,7 @@ export const useFormArray = <
             ? {
                 ...item,
                 value: value,
-                meta: meta ? { ...item.meta, meta } : item.meta,
+                meta: meta ? { ...item.meta, ...meta } : item.meta,
               }
             : item,
         ),

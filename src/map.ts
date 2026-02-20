@@ -28,7 +28,7 @@ export type FormMapItem<
   K extends string = string,
   M extends MetaType = EmptyMetaType,
 > = {
-  /** The numberic index of the item */
+  /** The numeric index of the item */
   readonly index: number
   /** A unique key to use as `key={key}` property */
   readonly key: string
@@ -99,7 +99,7 @@ export type FormMapOptions<
   K extends string = string,
   M extends MetaType = EmptyMetaType,
 > = {
-  /** Function that initate the metadata of each item */
+  /** Function that initiate the metadata of each item */
   initMetas: (value: T, mapKey: K) => M
   /** `true` to sort map keys on intialization, or a comparator function `(entry1: [K, T], entry2: [K, T]) => number` to provide a specific order */
   sort?: boolean | ((entry1: [K, T], entry2: [K, T]) => number)
@@ -118,11 +118,11 @@ export type UseFormMap<
 > = {
   /** The mirrored items with unique keys */
   readonly items: FormMapItem<T, K, M>[]
-  /** The unique key used for the next appened item */
+  /** The unique key used for the next appended item */
   readonly appendKey: string
   /** An appendable item to be concatenated with `items` */
   readonly newItem: NewFormMapItem
-  /** Fully reorganizes item, new items can be added as `{mapKey, value}` */
+  /** Fully reorganizes items, new items can be added as `{mapKey, value}` */
   readonly setItems: (
     action:
       | UpdatedFormMapItems<FormMapItem<T, K, M>[]>
@@ -132,9 +132,11 @@ export type UseFormMap<
   ) => void
   /** Sets the map key at the given index */
   readonly setMapKey: (index: number, mapKey: K, meta?: M) => void
+  /** Returns a setter for the map key at the given index */
+  readonly mapKeySetter: (index: number) => (action: SetStateAction<K>) => void
   /** Sets the value at the given index */
   readonly setValue: (index: number, value: T, meta?: M) => void
-  /** Returns a setter for the value at the given `index` */
+  /** Returns a setter for the value at the given index */
   readonly valueSetter: (index: number) => (action: SetStateAction<T>) => void
   /** Appends a new item with the unique key `appendKey` */
   readonly appendItem: (
@@ -185,7 +187,7 @@ export type UseFormMap<
  * @template M The type of the items' metadata, must be an object
  * @param values The map to mirror
  * @param setValues The setter for the map
- * @param options.initMetas Function that initate the metadata of each item
+ * @param options.initMetas Function that initiate the metadata of each item
  * @param options.sort `true` to sort map keys on intialization, or a comparator function `(entry1: [K, T], entry2: [K, T]) => number` to provide a specific order
  */
 export const useFormMap = <
@@ -226,7 +228,7 @@ export const useFormMap = <
       itemsRef.current = updatedItems
       setItemsState(updatedItems)
     }
-  }, [values, items])
+  }, [values, items, sort]) // TODO
 
   const [appendKey, setAppendKey] = useState(generateKey)
   // an empty item to be used as appendable
@@ -292,7 +294,7 @@ export const useFormMap = <
             ? {
                 ...item,
                 mapKey: mapKey,
-                meta: meta ? { ...item.meta, meta } : item.meta,
+                meta: meta ? { ...item.meta, ...meta } : item.meta,
                 ignored: true, // if key already exists, use the other value
               }
             : item,
@@ -300,6 +302,28 @@ export const useFormMap = <
       ),
     [updateItems],
   )
+
+  const mapKeySetter = useMemo(() => {
+    const cache: Partial<Record<number, (action: SetStateAction<K>) => void>> =
+      {}
+    return (index: number) => {
+      const cacheSetter = cache[index]
+      if (cacheSetter) return cacheSetter
+      const newSetter = (action: SetStateAction<K>) => {
+        const item = itemsRef.current[index]
+        if (!item) return
+        let mapKey: K
+        if (typeof action === "function") {
+          mapKey = (action as (previous: K) => K)(item.mapKey)
+        } else {
+          mapKey = action
+        }
+        setMapKey(index, mapKey)
+      }
+      cache[index] = newSetter
+      return newSetter
+    }
+  }, [setMapKey])
 
   const setValue = useCallback(
     (index: number, value: T, meta?: M) => {
@@ -309,7 +333,7 @@ export const useFormMap = <
             ? {
                 ...item,
                 value: value,
-                meta: meta ? { ...item.meta, meta } : item.meta,
+                meta: meta ? { ...item.meta, ...meta } : item.meta,
               }
             : item,
         ),
@@ -517,6 +541,7 @@ export const useFormMap = <
         newItem,
         setItems,
         setMapKey,
+        mapKeySetter,
         setValue,
         valueSetter,
         appendItem,
@@ -535,6 +560,7 @@ export const useFormMap = <
       newItem,
       setItems,
       setMapKey,
+      mapKeySetter,
       setValue,
       valueSetter,
       appendItem,
@@ -558,12 +584,12 @@ const areItemsCompatible = <T>(
   const foundValues = mapFromEntries(
     Object.keys(values ?? {}).map((mapKey) => [mapKey, false]),
   )
-  for (const { mapKey, value, ignored: duplicated } of items) {
+  for (const { mapKey, value, ignored } of items) {
     // key doesn't exist in values
     if (!values || !(mapKey in values)) return false
-    // item is marked as duplicated, skip it
-    if (duplicated) continue
-    // key is duplicated but not mark as duplicated, should never happen
+    // item is marked as ignored, skip it
+    if (ignored) continue
+    // key is duplicated but not mark as ignored, should never happen
     if (foundValues[mapKey]) return false
     // the value associated to key is different
     if (values[mapKey] !== value) return false
